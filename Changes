@@ -1,4 +1,8 @@
 Revision history for Mason-Plugin-SliceFilter
 
+0.02    30 Jun 2013
+        Documented currying technique
+        Injecting get_slice sub
+
 0.01    23 Jun 2013
         Basic feature. Does the job.

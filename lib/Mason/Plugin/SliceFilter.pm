@@ -2,7 +2,7 @@ package Mason::Plugin::SliceFilter;
 use Moose;
 with 'Mason::Plugin';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -10,11 +10,7 @@ Mason::Plugin::SliceFilter - Only output slices of your content optionally.
 
 =head1 VERSION
 
-Version 0.01
-
-=head1 SYNOPSIS
-
-See L<Mason> 'plugins'. Once this plugin included, you can use the following filter:
+Version 0.02
 
 =head1 CATALYST USERS
 
@@ -23,6 +19,14 @@ within the context of your stash. So for this plugin to work, you need to transf
 the slice http parameter to the stash (in your MyApp::WWW::Controller::Root::auto for instance):
 
   $c->stash()->{slice} = $c->req->param('slice');
+
+=head1 OTHER FRAMEWORK USERS
+
+PLEASE See SYNOPSIS FIRST and then look at the PARAMETER CAPTURING injection section.
+
+=head1 SYNOPSIS
+
+See L<Mason> 'plugins'. Once this plugin included, you can use the following filter:
 
 =head1 FILTER
 
@@ -49,6 +53,42 @@ matches, ready to be embedded in your page in ajax for instance.
 
 =back
 
+
+=head1 PARAMETER CAPTURING
+
+You can easily inject a sub that this filter will use to capture the slice ID from your framework
+parameter mechanism if there's no easy way to inject the slice parameter into your mason ->run
+call.
+
+The simpliest (yet tedious) solution is to inject this sub each time you use the filter.
+
+Example with Catalyst's $c object being exposed as a global in your mason:
+
+  % $.Slice( slice_id => 'myslice' , get_slice => sub{ scalar($c->req->param(shift)); }){{
+
+  % }}
+
+A nicer alternative is to curry the slice filter into a 'MySlice' one
+at Mason's top level component (typically Base.mc):
+
+  <%class>
+     ## Replace scalar($c->req->param(shift)) by whatever your framework exposes as a parameter getting method.
+     has 'MySlice' => ( default =>
+                     sub{
+                         my $self = shift;
+                         return sub{ my (%args) = @_;
+                                     return $self->Slice(get_slice => sub{ scalar($c->req->param(shift)); } , %args );
+                                    };
+                        } );
+  </%class>
+
+  % ## Then later:
+  % ## Notice the -> arrow
+  % $.MySlice->(slice_id => 'aslice' ){{
+   SliceA
+  % }}
+
+
 =head1 AUTHOR
 
 Jerome Eteve, C<< <jerome.eteve at gmail.com> >>
@@ -58,9 +98,6 @@ Jerome Eteve, C<< <jerome.eteve at gmail.com> >>
 Please report any bugs or feature requests to C<bug-mason-plugin-slicefilter at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mason-Plugin-SliceFilter>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 
