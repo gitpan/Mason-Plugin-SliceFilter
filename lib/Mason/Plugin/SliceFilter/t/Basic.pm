@@ -1,8 +1,13 @@
 package Mason::Plugin::SliceFilter::t::Basic;
+
 use Test::Class::Most parent => 'Mason::Test::Class';
-sub test_slice_filter :Test(5){
+sub test_slice_filter :Test(8){
   my $self = shift;
-  $self->setup_interp( plugins => [ '@Default', 'SliceFilter' ] );
+
+  my $STASH = {};
+
+  $self->setup_interp( plugins => [ '@Default', 'SliceFilter' ] , allow_globals => [qw($STASH)]);
+  $self->interp->set_global('$STASH' , $STASH);
 
   ## Just one slice without any param
   $self->test_comp( src =>
@@ -47,28 +52,52 @@ Nested
 % }}
 After nest
 % }}
-% $.Slice(slice_id => 'bslice' ){{
+% $.Slice(slice_id => 'bslice' , can_skip => 1 ){{
 SliceB
 % }}
 |,
                     expect => 'Nested' , args => { slice => 'nest' });
 
-## After nesting
+$STASH->{side_effect} = 0;
+## After nesting with skipping
   $self->test_comp( src =>
 q|
-% $.Slice(slice_id => 'aslice' ){{
+% $.Slice(slice_id => 'aslice' , can_skip => 1 ){{
 Before nest
 % $.Slice(slice_id => 'nest' ){{
+% $STASH->{side_effect} = 1;
 Nested
 % }}
 After nest
 % }}
-% $.Slice(slice_id => 'bslice' ){{
+% $.Slice(slice_id => 'bslice' , can_skip => 1 ){{
 SliceB
 % }}
 |,
                     expect => 'SliceB' , args => { slice => 'bslice' });
 
+ok( $STASH->{side_effect} == 0 , "Side effect is still zero because of can_skip");
+
+# Without skipping
+
+  $self->test_comp( src =>
+q|
+% $.Slice(slice_id => 'aslice' , can_skip => 0 ){{
+Before nest
+% $.Slice(slice_id => 'nest' ){{
+% $STASH->{side_effect} = 1;
+Nested
+% }}
+After nest
+% }}
+% $.Slice(slice_id => 'bslice' , can_skip => 1 ){{
+SliceB
+
+% }}
+|,
+                    expect => 'SliceB' , args => { slice => 'bslice' });
+
+ok( $STASH->{side_effect} == 1 , "Side effect occured because can_skip is 0");
 
 }
 

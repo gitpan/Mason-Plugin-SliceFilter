@@ -8,7 +8,7 @@ has 'get_slice' => ( is => 'ro' , isa => 'CodeRef' , required => 1 , default => 
 has 'm' => ( is => 'ro' , isa => 'Mason::Request' , required => 1 , default => sub{ return Mason::Request->current_request();});
 has 'slice_id' => ( is => 'ro' , isa => 'Str' , required => 1 );
 has 'slice_param' => ( is => 'ro', isa => 'Str', required => 1 , default => 'slice' );
-
+has 'can_skip' => ( is => 'ro', isa => 'Bool', required => 1 , default => 0 );
 
 has '+filter' =>
   ( default =>
@@ -21,7 +21,7 @@ has '+filter' =>
         ## warn "GOT SLICE PARAM '$slice_param'";
         unless(length($slice_param // '' ) ){
                   ## warn "NO SLICE PARAM. Yielding";
-          $yield->();
+          return ( $yield->() );
         }else{
           ## warn "We have a slice $slice_param";
                   if( $slice_param eq $self->slice_id ){
@@ -34,7 +34,11 @@ has '+filter' =>
                     ## Job done
                   }else{
                     ## warn "SLICE MISS on $slice_param";
-                    $yield->();
+                    unless( $self->can_skip() ){
+                      return ( $yield->() );
+                    }else{
+                      return '';
+                    }
                   }
                 }
       }

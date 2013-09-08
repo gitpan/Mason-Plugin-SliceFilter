@@ -2,7 +2,7 @@ package Mason::Plugin::SliceFilter;
 use Moose;
 with 'Mason::Plugin';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -10,7 +10,7 @@ Mason::Plugin::SliceFilter - Only output slices of your content optionally.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 CATALYST USERS
 
@@ -50,9 +50,46 @@ matches, ready to be embedded in your page in ajax for instance.
     <p>Same thing but with controlable slice param.</p>
   % }}
 
+  % $.Slice( slice_id => 'myslice' , can_skip => 1 ){{
+    <p>This souldn't contain nested slices</p>
+  % }}
+
 
 =back
 
+=head2 FILTER ARGUMENTS
+
+=over
+
+=item slice_id
+
+Mandatory unique ID (unique on a specific page) of this slice.
+
+=item slice_param
+
+Optional. The name of the request parameter that contains the requested slice_id. Default: 'slice'
+
+=item can_skip
+
+Optional. If you know your slice is:
+
+1 - Not going to contain any nested one.
+
+2 - Doesn't contain any side effect.
+
+3 - Towards the beginning of the page, and therefore worth being skipped when not required.
+
+You can use can_skip to cause this filter to 'jump' over this entire slice content when it's not requested
+instead of generating it for nothing.
+
+=item get_slice
+
+Optional. A sub that will receive the 'slice_param' value that you can use to return this parameter value
+from your framework of choice. Defaults to 'get the parameter from $m->request_args()'.
+
+See PARAMETER CAPTURING below.
+
+=back
 
 =head1 PARAMETER CAPTURING
 
