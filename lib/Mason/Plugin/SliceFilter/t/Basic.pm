@@ -1,7 +1,7 @@
 package Mason::Plugin::SliceFilter::t::Basic;
 
 use Test::Class::Most parent => 'Mason::Test::Class';
-sub test_slice_filter :Test(8){
+sub test_slice_filter :Test(9){
   my $self = shift;
 
   my $STASH = {};
@@ -57,6 +57,26 @@ SliceB
 % }}
 |,
                     expect => 'Nested' , args => { slice => 'nest' });
+
+## Nested ones. Hitting the wrapping one should output the whole
+## thing, even if the nested slice is can_skip
+  $self->test_comp( src =>
+q|
+% $.Slice(slice_id => 'aslice'){{
+Before nest
+% $.Slice(slice_id => 'nest' , can_skip => 1 ){{
+Nested
+% }}
+After nest
+% }}
+% $.Slice(slice_id => 'bslice' , can_skip => 1 ){{
+SliceB
+% }}
+|,
+                    expect => "Before nest\nNested\nAfter nest\n" , args => { slice => 'aslice' });
+
+
+
 
 $STASH->{side_effect} = 0;
 ## After nesting with skipping

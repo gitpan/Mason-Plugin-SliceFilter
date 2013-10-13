@@ -20,27 +20,31 @@ has '+filter' =>
         my $slice_param = &{$self->get_slice()}($self->slice_param());
         ## warn "GOT SLICE PARAM '$slice_param'";
         unless(length($slice_param // '' ) ){
-                  ## warn "NO SLICE PARAM. Yielding";
+          ## warn "NO SLICE PARAM. Yielding";
           return ( $yield->() );
         }else{
           ## warn "We have a slice $slice_param";
-                  if( $slice_param eq $self->slice_id ){
-                    ## warn "SLICE HIT on $slice_param!";
-                    ## Flush any previously generated content
-                    $m->clear_buffer();
-                    $m->out_method->(($yield->()), $m );
-                    $m->flush_buffer();
-                    $m->abort();
-                    ## Job done
-                  }else{
-                    ## warn "SLICE MISS on $slice_param";
-                    unless( $self->can_skip() ){
-                      return ( $yield->() );
-                    }else{
-                      return '';
-                    }
-                  }
-                }
+          if( $slice_param eq $self->slice_id ){
+            ## warn "SLICE HIT on $slice_param!";
+            ## Flush any previously generated content
+            $m->clear_buffer();
+            # Record the fact we have a slice hit
+            # That will prevent nested 'can_skip' slices to
+            # skip their output.
+            $m->notes(__PACKAGE__.'_slicehit' , 1);
+            $m->out_method->(($yield->()), $m );
+            $m->flush_buffer();
+            $m->abort();
+            ## Job done
+          }else{
+            ## warn "SLICE MISS on $slice_param";
+            unless( $self->can_skip() && !$m->notes(__PACKAGE__.'_slicehit') ){
+              return ( $yield->() );
+            }else{
+              return '';
+            }
+          }
+        }
       }
     });
 
