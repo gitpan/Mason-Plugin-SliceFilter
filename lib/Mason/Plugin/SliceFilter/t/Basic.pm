@@ -1,7 +1,7 @@
 package Mason::Plugin::SliceFilter::t::Basic;
 
 use Test::Class::Most parent => 'Mason::Test::Class';
-sub test_slice_filter :Test(9){
+sub test_slice_filter :Test(11){
   my $self = shift;
 
   my $STASH = {};
@@ -17,6 +17,27 @@ SliceA
 % }}
 |,
                     expect => 'SliceA');
+
+  ## One slice with yield_noslice false
+  $self->test_comp( src =>
+q|
+% $.Slice(slice_id => 'aslice' , yield_noslice => 0 ){{
+SliceA
+% }}
+|,
+                    expect => '');
+
+
+  ## One slice with yield_noslice false, hitting the slice
+  $self->test_comp( src =>
+q|
+% $.Slice(slice_id => 'aslice' , yield_noslice => 0 ){{
+SliceA
+% }}
+|,
+                    expect => 'SliceA' , args => { slice => 'aslice' } );
+
+
 
 ## Hit the first slice
   $self->test_comp( src =>

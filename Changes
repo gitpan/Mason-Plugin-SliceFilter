@@ -1,5 +1,8 @@
 Revision history for Mason-Plugin-SliceFilter
 
+0.05    2014-08-10
+        Added yield_noslice option.
+
 0.04    2013-10-13
         Avoid skipping nested slices if wrapping slice hit
 

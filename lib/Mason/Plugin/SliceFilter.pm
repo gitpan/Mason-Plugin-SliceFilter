@@ -2,7 +2,7 @@ package Mason::Plugin::SliceFilter;
 use Moose;
 with 'Mason::Plugin';
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 NAME
 
@@ -50,6 +50,11 @@ matches, ready to be embedded in your page in ajax for instance.
     <p>Same thing but with controlable slice param.</p>
   % }}
 
+  % $.Slice( slice_id => 'myslice', yield_noslice => 0 ){{
+    <p>This will NOT be output with no 'slice' parameter.
+       So for instance, this won't be there on the first page rendering (assuming there's no 'slice' param)</p>
+  % }}
+
   % $.Slice( slice_id => 'myslice' , can_skip => 1 ){{
     <p>This souldn't contain nested slices</p>
   % }}
@@ -68,6 +73,13 @@ Mandatory unique ID (unique on a specific page) of this slice.
 =item slice_param
 
 Optional. The name of the request parameter that contains the requested slice_id. Default: 'slice'
+
+=item yield_noslice
+
+Optional. Default is true.
+
+If set to false, the content of this filter will not be output, unless the correct 'slice' parameter
+is in the query. This is useful to avoid generating content on the first 'slice-less' page rendering for instance.
 
 =item can_skip
 
@@ -171,7 +183,7 @@ L<http://search.cpan.org/dist/Mason-Plugin-SliceFilter/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2013 Jerome Eteve.
+Copyright 2013-2014 Jerome Eteve.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
